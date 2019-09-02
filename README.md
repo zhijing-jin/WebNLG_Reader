@@ -4,10 +4,17 @@ This is an easy-to-use Python reader for the [enriched WebNLG](https://github.co
 ```bash
 python data/webnlg/reader.py
 ```
-Check generated files:
-```shell
-# generated files: data/webnlg/{train,valid,test}.json
-ls data/webnlg/*.json
+The resulted file structure is like this (partially):
+```bash
+.
+├── data
+│   └── webnlg
+│       ├── reader.py
+│       ├── test.json
+│       ├── train.json
+│       ├── utils.py
+│       └── valid.json
+└── README.md
 ```
 
 ### Contributions
@@ -25,6 +32,7 @@ ls data/webnlg/*.json
 - Vocab of relations: 726
 - Vocab of txt: 6671
 - Vocab of tgt: 1897
+
 
 ### Todo
 - There are dirty, unaligned (stripleset, template) pairs. Align them by tracking the `self.cnt_dirty_data` variable when running `reader.py`.

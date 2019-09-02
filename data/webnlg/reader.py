@@ -1,11 +1,15 @@
+import os
+import sys
+import json
 from itertools import chain
 from os import listdir, path
 from os.path import isdir
 
-import xmltodict
-import os
-import sys
-import json
+try:
+    import xmltodict
+except ImportError:
+    os.system('pip install xmltodict')
+    import xmltodict
 
 sys.path.append(os.path.abspath('.'))
 from utils import Cleaner, misspelling, rephrase, rephrase_if_must, DataReader, \
@@ -92,10 +96,19 @@ class RDFFileReader:
         s_tripleset = [(_clean_term(subj), _clean_term(predi), _clean_term(obj))
                        for subj, predi, obj in s_tripleset]
 
+        # manual fixes
+        template = template.replace(
+            'The capital of BRIDGE_1 is PATIENT_2 and BRIDGE_2 largest city is PATIENT_1 .',
+            'The capital of BRIDGE_1 is PATIENT_2 and BRIDGE_1 largest city is PATIENT_1 .')
+        if template == "AGENT_1 was built by PATIENT_4 and is operated by BRIDGE_1 .":
+            import pdb;pdb.set_trace()
+            template = 'AGENT_1 was built by PATIENT_4 .'
+            text = 'AIDAstella was built by Meyer Werft .'
         # all_phrases += list(
         #     chain.from_iterable([item for item in entitymaps.items()]))
         # punctuations = re.sub(r'[a-zA-Z0-9_\s,ü(İ)Æğ]', '', ''.join(all_phrases))
         # if punctuations: import pdb;pdb.set_trace()
+
         return s_tripleset, template, text, ner2ent
 
     def extract_sentences(self, lex):
@@ -155,6 +168,8 @@ class RDFFileReader:
         template = template.replace('PATIENT-4.BRIDGE-1',
                                     'PATIENT-4 . BRIDGE-1')
         template = template.replace('PATIENT-2-operated', 'PATIENT-2 -operated')
+
+
         return template
 
     def fix_sent(self, sentence):

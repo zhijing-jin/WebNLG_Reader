@@ -1,16 +1,20 @@
+# -*- coding: utf-8 -*-
+from __future__ import division, unicode_literals, print_function
+
 import itertools
 import re
 
 from enum import Enum
 from typing import List, Tuple, Dict, Callable
-from efficiency.log import fwrite
+
+import sys
+import os.path
 
 
 class DataSetType(Enum):
     DEV = "dev"
     TEST = "test"
     TRAIN = "train"
-
 
 
 misspelling = {
@@ -445,3 +449,93 @@ class DataReader:
                          self.data]
 
         return self
+
+
+class NLP:
+    def __init__(self):
+        import spacy
+
+        self.nlp = spacy.load('en', disable=['ner', 'parser', 'tagger'])
+        self.nlp.add_pipe(self.nlp.create_pipe('sentencizer'))
+
+    def sent_tokenize(self, text):
+        doc = self.nlp(text)
+        sentences = [sent.string.strip() for sent in doc.sents]
+        return sentences
+
+    def word_tokenize(self, text, lower=False):  # create a tokenizer function
+        if text is None: return text
+        text = ' '.join(text.split())
+        if lower: text = text.lower()
+        toks = [tok.text for tok in self.nlp.tokenizer(text)]
+        return ' '.join(toks)
+
+
+def show_var(expression,
+             joiner='\n', print=print):
+    '''
+    Prints out the name and value of variables.
+    Eg. if a variable with name `num` and value `1`,
+    it will print "num: 1\n"
+
+    Parameters
+    ----------
+    expression: ``List[str]``, required
+        A list of varible names string.
+
+    Returns
+    ----------
+        None
+    '''
+
+    import json
+
+    var_output = []
+
+    for var_str in expression:
+        frame = sys._getframe(1)
+        value = eval(var_str, frame.f_globals, frame.f_locals)
+
+        if ' object at ' in repr(value):
+            value = vars(value)
+            value = json.dumps(value, indent=2)
+            var_output += ['{}: {}'.format(var_str, value)]
+        else:
+            var_output += ['{}: {}'.format(var_str, repr(value))]
+
+    if joiner != '\n':
+        output = "[Info] {}".format(joiner.join(var_output))
+    else:
+        output = joiner.join(var_output)
+    print(output)
+    return output
+
+
+def fwrite(new_doc, path, mode='w', no_overwrite=False):
+    if not path:
+        print("[Info] Path does not exist in fwrite():", str(path))
+        return
+    if no_overwrite and os.path.isfile(path):
+        print("[Error] pls choose whether to continue, as file already exists:",
+              path)
+        import pdb
+        pdb.set_trace()
+        return
+    with open(path, mode) as f:
+        f.write(new_doc)
+
+
+def shell(cmd, working_directory='.', stdout=False, stderr=False):
+    import subprocess
+    from subprocess import PIPE, Popen
+
+    subp = Popen(cmd, shell=True, stdout=PIPE,
+                 stderr=subprocess.STDOUT, cwd=working_directory)
+    subp_stdout, subp_stderr = subp.communicate()
+
+    if stdout and subp_stdout:
+        print("[stdout]", subp_stdout, "[end]")
+    if stderr and subp_stderr:
+        print("[stderr]", subp_stderr, "[end]")
+
+    return subp_stdout, subp_stderr

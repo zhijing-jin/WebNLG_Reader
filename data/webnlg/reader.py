@@ -4,21 +4,16 @@ from os.path import isdir
 
 import xmltodict
 import os
-import re
 import sys
 import json
 
 sys.path.append(os.path.abspath('.'))
 from utils import Cleaner, misspelling, rephrase, rephrase_if_must, DataReader, \
-    DataSetType
-
-from efficiency.log import show_var, fwrite
-from efficiency.nlp import NLP
-from efficiency.function import shell
+    DataSetType, show_var, fwrite, NLP, shell
 
 
 class RDFFileReader:
-    def __init__(self, file_name):
+    def __init__(self, file_name, verbose=False):
         self.cleaner = Cleaner()
         self.cleaner.clean(file_name)
 
@@ -61,7 +56,7 @@ class RDFFileReader:
                         'target_txt': text,
                         'ner2ent': ner2ent,
                     })
-        if self.cnt_dirty_data: show_var(["self.cnt_dirty_data"])
+        if verbose and self.cnt_dirty_data: show_var(["self.cnt_dirty_data"])
 
     def _tokenize(self, s_tripleset, template, text, entitymaps):
         '''
@@ -731,12 +726,12 @@ class WebNLGDataReader(DataReader):
         return [folder]
 
     def save(self):
-        show_var(["len(self.data)"])
         writeout = json.dumps(self.data, indent=4)
         data_set_type = 'valid' if self.data_set_type == 'dev' else self.data_set_type
         save_f = path.join(path.dirname(path.realpath(__file__)),
                            data_set_type + '.json')
         fwrite(writeout, save_f)
+        print('[Info] Saved {} data into {}'.format(len(self.data), save_f))
 
 
 def download():
@@ -748,7 +743,7 @@ def download():
 
 
 def main():
-    # download()
+    download()
     for typ in DataSetType:
         data_reader = WebNLGDataReader(typ)
         data_reader.save()
@@ -756,8 +751,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    # show_var(["DelexWebNLGDataReader(DataSetType.TRAIN).data[100]"])
-    # len(DelexWebNLGDataReader(DataSetType.TRAIN).data)
-    # len(DelexWebNLGDataReader(DataSetType.DEV).data)
-    # len(DelexWebNLGDataReader(DataSetType.TEST).data)

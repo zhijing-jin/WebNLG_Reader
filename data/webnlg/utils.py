@@ -3,12 +3,20 @@ from __future__ import division, unicode_literals, print_function
 
 import itertools
 import re
+import json
 
 from enum import Enum
 from typing import List, Tuple, Dict, Callable
 
 import sys
 import os.path
+
+try:
+    import spacy
+except ImportError:
+    os.system('pip install spacy')
+    os.system('python -m spacy download en')
+    import spacy
 
 
 class DataSetType(Enum):
@@ -408,6 +416,25 @@ class Cleaner():
             ('dev/5triples/Food.xml', 659,
              '<lex comment="good" lid="Id3">'): '<lex comment="bad" lid="Id3">',
 
+            ('test/5triples/MeanOfTransportation.xml', 137,
+             '<text>AIDAstella was built by Meyer Werft and is operated by AIDA Cruise Line. The AIDAstella has a beam of 32.2 m, is 253260.0 millimetres in length and has a beam of 32.2 m.</text>'):
+                '<text>AIDAstella was built by Meyer Werft. The AIDAstella has a beam of 32.2 m, is 253260.0 millimetres in length and has a beam of 32.2 m.</text>',
+            ('test/5triples/MeanOfTransportation.xml', 138,
+             '<template>AGENT-1 was built by PATIENT-4 and is operated by BRIDGE-1 . AGENT-1 has a beam of PATIENT-2 , is PATIENT-5 in length and has a beam of PATIENT-2 .</template>'):
+                '<template>AGENT-1 was built by PATIENT-4 . AGENT-1 has a beam of PATIENT-2 , is PATIENT-5 in length and has a beam of PATIENT-2 .</template>',
+
+            ('test/4triples/CelestialBody.xml', 34,
+             '<text>The epoch of (19255) 1994 VK8 is on 31 December 2006. It has an orbital period of 8788850000.0, a periapsis of 6155910000000.0 and an apoapsis of 6603633000.0 km.</text>'):
+                '<text>The epoch of (19255) 1994 VK8 is on 31 December 2006. It has an orbital period of 8788850000.0 and a periapsis of 6155910000000.0 .</text>',
+            ('test/4triples/CelestialBody.xml', 35,
+             '<template>The epoch of AGENT-1 is on PATIENT-1 . AGENT-1 has an orbital period of PATIENT-2 , a periapsis of PATIENT-3 and an apoapsis of PATIENT-5 .</template>'):
+                '<template>The epoch of AGENT-1 is on PATIENT-1 . AGENT-1 has an orbital period of PATIENT-2 and a periapsis of PATIENT-3 .</template>',
+            ('test/4triples/MeanOfTransportation.xml', 293,
+             '<text>Costa Crociere is the owner of the AIDAstella which is 25326.0 millimetres long. It was built by Meyer Werft and operated by AIDA Cruise Line.</text>'):
+                '<text>Costa Crociere is the owner of the AIDAstella which is 25326.0 millimetres long. It was built by Meyer Werft .</text>',
+            ('test/4triples/MeanOfTransportation.xml', 294,
+             '<template>PATIENT-4 is the owner of AGENT-1 which is PATIENT-2 long . AGENT-1 was built by PATIENT-3 and operated by BRIDGE-1 .</template>'):
+                '<template>PATIENT-4 is the owner of AGENT-1 which is PATIENT-2 long . AGENT-1 was built by PATIENT-3 .</template>',
         }
         text = line.strip()
         key = (fname_end, line_ix, text)
@@ -453,7 +480,6 @@ class DataReader:
 
 class NLP:
     def __init__(self):
-        import spacy
 
         self.nlp = spacy.load('en', disable=['ner', 'parser', 'tagger'])
         self.nlp.add_pipe(self.nlp.create_pipe('sentencizer'))
@@ -487,8 +513,6 @@ def show_var(expression,
     ----------
         None
     '''
-
-    import json
 
     var_output = []
 

@@ -74,8 +74,6 @@ class RDFFileReader:
         def _clean_term(term):
             return term.replace('-', '_').strip('\"')
 
-        template = self.fix_template(template)
-
         all_phrases = list(
             chain.from_iterable([triple for triple in s_tripleset]))
         ner2ent = {k: v for k, v in entitymaps.items() if (k in template) or
@@ -97,11 +95,7 @@ class RDFFileReader:
                        for subj, predi, obj in s_tripleset]
 
         # manual fixes
-        template = template.replace(
-            'The capital of BRIDGE_1 is PATIENT_2 and BRIDGE_2 largest city is PATIENT_1 .',
-            'The capital of BRIDGE_1 is PATIENT_2 and BRIDGE_1 largest city is PATIENT_1 .')
         if template == "AGENT_1 was built by PATIENT_4 and is operated by BRIDGE_1 .":
-            import pdb;pdb.set_trace()
             template = 'AGENT_1 was built by PATIENT_4 .'
             text = 'AIDAstella was built by Meyer Werft .'
         # all_phrases += list(
@@ -138,7 +132,7 @@ class RDFFileReader:
                 text = self.fix_tokenize(text)
                 template = self.nlp.sent_tokenize(s["template"])
 
-            if len(set([len(template), len(text), len(s_tripleset)])) != 1:
+            if len({len(template), len(text), len(s_tripleset)}) != 1:
                 # import pdb;
                 # pdb.set_trace()
                 self.cnt_dirty_data += 1
@@ -148,34 +142,7 @@ class RDFFileReader:
                 if not s_t: import pdb;pdb.set_trace()
                 yield s_t, te, tem
 
-    def fix_template(self, template):
-        template = template.replace('AEGNT-1', 'AGENT-1')
-        template = template.replace('AAGENT-1', 'AGENT-1')
-        template = template.replace('AGENT-1(area', 'AGENT-1 (area')
-        template = template.replace('AGENT-1(has', 'AGENT-1 (has')
-        template = template.replace('AGENT-1(mass', 'AGENT-1 (mass')
-        template = template.replace('AGENT-1is', 'AGENT-1 is')
-
-        template = template.replace('BRUDGE-1', 'BRIDGE-1')
-        template = template.replace('BRIDGE-1which', 'BRIDGE-1 which')
-        template = template.replace(' RIDGE-2', ' BRIDGE-2')
-
-        template = template.replace('PATIENTI-2', 'PATIENT-2')
-        template = template.replace('havePATIENT-3', 'have PATIENT-3')
-        template = template.replace('byPATIENT-1', 'by PATIENT-1')
-        template = template.replace('PATIENT-1.AGENT-1', 'PATIENT-1 . AGENT-1')
-        template = template.replace('PATIENT-2.AGENT-1', 'PATIENT-2 . AGENT-1')
-        template = template.replace('PATIENT-4.BRIDGE-1',
-                                    'PATIENT-4 . BRIDGE-1')
-        template = template.replace('PATIENT-2-operated', 'PATIENT-2 -operated')
-
-
-        return template
-
     def fix_sent(self, sentence):
-        sentence = sentence.replace(
-            'Sour cream, chopped fruits, condensed milk. granola, raisins and shredded coconut are the main ingredients in Bionico.',
-            'Sour cream, chopped fruits, condensed milk, granola, raisins and shredded coconut are the main ingredients in Bionico.')
         sentence = sentence.replace(' (abbrv. Acta Palaeontol. Pol)',
                                     ' (abbrv Acta Palaeontol Pol)')
         return sentence
@@ -750,7 +717,9 @@ class WebNLGDataReader(DataReader):
 
 
 def download():
-    cmd = 'git clone https://github.com/ThiagoCF05/webnlg.git data_webnlg\n' \
+    cmd = 'rm -rf data/webnlg/raw 2>/dev/null \n' \
+          'git clone https://github.com/zhijing-jin/webnlg.git data_webnlg\n' \
+          'cd data_webnlg; git checkout e978c3e; cd .. \n' \
           'cp -a data_webnlg/data/v1.5/en/ data/webnlg/raw\n' \
           'rm -rf data_webnlg\n'
     print('[Info] Downloading enriched WebNLG data...')

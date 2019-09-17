@@ -39,6 +39,8 @@ The resulted file structure is like this:
 
 
 ### Todo
+- "was selected by NASA" is a relationship which spans several words, -- it should be made as one word in the triple.
+- "(workedAt," is a relationship which has punctuations, -- it should be clean.
 - There are still several hundred dirty, unaligned (stripleset, template) pairs. Align them by tracking the `self.cnt_dirty_data` variable when running `reader.py`.
 
 

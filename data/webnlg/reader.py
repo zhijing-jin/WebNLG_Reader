@@ -26,6 +26,7 @@ class RDFFileReader:
         self.data = []
         self.file_name = file_name
         self.cnt_dirty_data = 0
+        self.cnt_corefs = 0
 
         content = open(file_name, encoding="utf-8").read()
 
@@ -47,6 +48,14 @@ class RDFFileReader:
             sentences = list(self.extract_sentences(entry["lex"]))
 
             for s_tripleset, text, template in sentences:
+                new_s_tripleset, template, text, ner2ent = \
+                    self.filter_unaligned(s_tripleset, template, text,
+                                          entitymaps)
+                if not new_s_tripleset:
+                    self.cnt_corefs += 1
+                    # import pdb;pdb.set_trace()
+                    continue
+
                 s_tripleset, template, text, ner2ent = \
                     self._tokenize(s_tripleset, template, text, entitymaps)
 
@@ -61,6 +70,7 @@ class RDFFileReader:
                         'ner2ent': ner2ent,
                     })
         if verbose and self.cnt_dirty_data: show_var(["self.cnt_dirty_data"])
+        if verbose and self.cnt_corefs: show_var(["self.cnt_corefs"])
 
     def _tokenize(self, s_tripleset, template, text, entitymaps):
         '''
@@ -75,9 +85,32 @@ class RDFFileReader:
             return term.replace('-', '_').strip('\"')
 
         all_phrases = list(
-            chain.from_iterable([triple for triple in s_tripleset]))
+            chain.from_iterable(
+                [(triple[0], triple[-1]) for triple in s_tripleset]))
         ner2ent = {k: v for k, v in entitymaps.items() if (k in template) or
-                   ({k, v} & set(all_phrases))}
+                   (v in set(all_phrases))}
+        '''
+        TODO: 
+        Erroraneous case:
+        train.csv:7123:"Ayam penyet	mainIngredients	Squeezed"" or ""smashed"" fried chicken served with sambal",PATIENT_2 is PATIENT_3 .,"Fried chicken is Squeezed"" or ""smashed"" fried chicken served with sambal .",The chicken is smashed and served hot with sambal .,"Ayam penyet	Fried chicken	Squeezed"" or ""smashed"" fried chicken served with sambal",AGENT_1 PATIENT_2 PATIENT_3,ROOT	mainIngredients	mainIngredients_inv,mainIngredients,"[0, 2]","[2, 2, 8]","{""AGENT_1"": ""Ayam penyet"", ""PATIENT_2"": ""Fried chicken"", ""PATIENT_3"": ""Squeezed\"" or \""smashed\"" fried chicken served with sambal""}","[[0, 4], [4, 2], [2, 5], [5, 0]]","Ayam penyet <ENT_SEP> Fried chicken <ENT_SEP> Squeezed"" or ""smashed"" fried chicken served with sambal <ENT_REL_SEP> mainIngredients <REL_TRP_SEP> 0 2 0","Ayam penyet	mainIngredients	Squeezed"" or ""smashed"" fried chicken served with sambal <ENT_TGT_SEP> PATIENT_2 is PATIENT_3 . <TGT_TXT_SEP> The chicken is smashed and served hot with sambal ."
+        train.csv:7359:Bakewell tart	ingredient	Frangipane,AGENT_1 contains PATIENT_3 .,Bakewell pudding contains Frangipane .,It contains frangipane .,Bakewell pudding	Bakewell tart	Frangipane,AGENT_1 BRIDGE_2 PATIENT_3,ROOT	ingredient	ingredient_inv,ingredient,"[1, 2]","[2, 2, 1]","{""AGENT_1"": ""Bakewell pudding"", ""BRIDGE_2"": ""Bakewell tart"", ""PATIENT_3"": ""Frangipane""}","[[1, 4], [4, 2], [2, 5], [5, 1]]",Bakewell pudding <ENT_SEP> Bakewell tart <ENT_SEP> Frangipane <ENT_REL_SEP> ingredient <REL_TRP_SEP> 1 2 0,Bakewell tart	ingredient	Frangipane <ENT_TGT_SEP> AGENT_1 contains PATIENT_3 . <TGT_TXT_SEP> It contains frangipane .
+        {
+            "sent": "demarce short stories in the the grantville gazettes precede eric flint novels .",
+            "graph": [
+                {
+                    "truth": "precededBy",
+                    "pred": "precededBy",
+                    "ent0_ent1": "1634: the bavarian crisis ENT0_END demarce short stories in the the grantville gazettes"
+                },
+                {
+                    "truth": "<unk>",
+                    "pred": "author",
+                    "ent0_ent1": "1634: the bavarian crisis ENT0_END eric flint"
+                }
+            ]
+        }
+
+        '''
         entities = set(ner2ent.keys())
         ner2ent = {_clean_term(k): _clean_term(v) for k, v in ner2ent.items()}
 
@@ -104,6 +137,14 @@ class RDFFileReader:
         # if punctuations: import pdb;pdb.set_trace()
 
         return s_tripleset, template, text, ner2ent
+
+    @staticmethod
+    def filter_unaligned(s_tripleset, template, text, entitymaps):
+        ent2ner = {v: k for k, v in entitymaps.items()}
+        s_tripleset = [triple for triple in s_tripleset
+                       if (ent2ner[triple[0]] in template) and
+                       (ent2ner[triple[-1]] in template)]
+        return s_tripleset, template, text, entitymaps
 
     def extract_sentences(self, lex):
         sentences = lex

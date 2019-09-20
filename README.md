@@ -20,7 +20,7 @@ The resulted file structure is like this:
 
 ### Contributions
 1. Decomposed the WebNLG dataset from document-level into sentence-level
-1. Created an Easy-to-use Python reader for WebNLG dataset v1.5, runnable by 2019-SEP-08. (Debugged and adapted from the reader in [chimera](https://github.com/AmitMY/chimera)'s repo.) 
+1. Created an Easy-to-use Python reader for WebNLG dataset v1.5, runnable by 2019-SEP-20. (Debugged and adapted from the reader in [chimera](https://github.com/AmitMY/chimera)'s repo.) 
 1. Manually fixed [spaCy](https://spacy.io/)'s sentence tokenization 
 1. Deleted parts of sentences where no corresponding triple exists.
 1. Deleted irrelevant triples manually
@@ -43,5 +43,5 @@ The resulted file structure is like this:
 - "(workedAt," is a relationship which has punctuations, -- it should be clean.
 - There are still several hundred dirty, unaligned (stripleset, template) pairs. Align them by tracking the `self.cnt_dirty_data` variable when running `reader.py`.
 - 'discrimina-tive training' spelling errors
-
+- fix unalignment errors by `grep -nriF '<sentence ID="3"/>' '<sentence ID="2"/>'`
 

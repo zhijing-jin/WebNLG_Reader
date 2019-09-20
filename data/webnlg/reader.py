@@ -219,6 +219,7 @@ class RDFFileReader:
                 != set(tag2tri_ent.keys()):
             self.cnt_corefs += 1
         assert set(tag2tri_ent.values()) == triple_entities
+
         '''
         TODO: 
         Erroraneous case:
@@ -282,9 +283,6 @@ def download():
 
 def main():
     download()
-    import pdb;
-    pdb.set_trace()
-    fwrite('', 'temp1.txt')
 
     for typ in DataSetType:
         data_reader = WebNLGDataReader(typ)

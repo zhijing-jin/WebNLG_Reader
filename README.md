@@ -4,7 +4,7 @@ This is an easy-to-use Python reader for the [enriched WebNLG](https://github.co
 ```bash
 python data/webnlg/reader.py [--version x.x]
 ```
-`--version` choices: `1.4` | `1.5` (default) | `1.6`
+`--version` choices: `1.4` | `1.5` (default)
 
 The resulted file structure is like this:
 ```bash

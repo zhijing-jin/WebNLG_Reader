@@ -292,5 +292,5 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', default="1.5", choices=["1.4", "1.5", "1.6"])
+    parser.add_argument('--version', default="1.5", choices=["1.4", "1.5"])
     main(parser.parse_args())

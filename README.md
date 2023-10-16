@@ -2,8 +2,10 @@ This is an easy-to-use Python reader for the [enriched WebNLG](https://github.co
 
 ### How to run
 ```bash
-python data/webnlg/reader.py
+python data/webnlg/reader.py [--version x.x]
 ```
+`--version` choices: `1.4` | `1.5` (default) | `1.6`
+
 The resulted file structure is like this:
 ```bash
 .

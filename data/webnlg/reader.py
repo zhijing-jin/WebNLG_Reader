@@ -272,13 +272,13 @@ class WebNLGDataReader(DataReader):
         print('[Info] Saved {} data into {}'.format(len(self.data), save_f))
 
 
-def download(ver: str):
+def download(version: str):
     cmd = 'rm -rf data/webnlg/raw 2>/dev/null \n' \
           'git clone https://github.com/zhijing-jin/webnlg.git data_webnlg\n' \
           'cd data_webnlg; git checkout e978c3e; cd .. \n' \
-          f'cp -a data_webnlg/data/v{ver}/en/ data/webnlg/raw\n' \
+          f'cp -a data_webnlg/data/v{version}/en/ data/webnlg/raw\n' \
           'rm -rf data_webnlg\n'
-    print('[Info] Downloading enriched WebNLG data...')
+    print(f'[Info] Downloading enriched WebNLG v{version} data...')
     shell(cmd)
 
 

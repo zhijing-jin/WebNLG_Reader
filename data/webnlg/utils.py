@@ -14,7 +14,7 @@ import os.path
 try:
     import spacy
 except ImportError:
-    os.system('pip install spacy')
+    os.system('pip install --upgrade spacy')
     os.system('python -m spacy download en')
     import spacy
 
@@ -696,12 +696,12 @@ class Cleaner():
 class NLP:
     def __init__(self):
 
-        self.nlp = spacy.load('en', disable=['ner', 'parser', 'tagger'])
-        self.nlp.add_pipe(self.nlp.create_pipe('sentencizer'))
+        self.nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser', 'tagger'])
+        self.nlp.add_pipe('sentencizer')
 
     def sent_tokenize(self, text):
         doc = self.nlp(text)
-        sentences = [sent.string.strip() for sent in doc.sents]
+        sentences = [str(sent).strip() for sent in doc.sents]
         return sentences
 
     def word_tokenize(self, text, lower=False):  # create a tokenizer function

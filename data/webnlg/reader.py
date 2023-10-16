@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 import json
@@ -271,18 +272,18 @@ class WebNLGDataReader(DataReader):
         print('[Info] Saved {} data into {}'.format(len(self.data), save_f))
 
 
-def download():
+def download(ver: str):
     cmd = 'rm -rf data/webnlg/raw 2>/dev/null \n' \
           'git clone https://github.com/zhijing-jin/webnlg.git data_webnlg\n' \
           'cd data_webnlg; git checkout e978c3e; cd .. \n' \
-          'cp -a data_webnlg/data/v1.5/en/ data/webnlg/raw\n' \
+          f'cp -a data_webnlg/data/v{ver}/en/ data/webnlg/raw\n' \
           'rm -rf data_webnlg\n'
     print('[Info] Downloading enriched WebNLG data...')
     shell(cmd)
 
 
-def main():
-    download()
+def main(args):
+    download(args.version)
 
     for typ in DataSetType:
         data_reader = WebNLGDataReader(typ)
@@ -290,4 +291,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--version', default="1.5", choices=["1.4", "1.5", "1.6"])
+    main(parser.parse_args())
